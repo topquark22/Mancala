@@ -17,7 +17,8 @@ If the last piece you drop is in your own store, you get a free turn.
 If the last piece you drop is in an empty hole on your side and there
 are pieces in the hole directly opposite, you capture that piece and
 any pieces in the hole directly opposite. Place all captured pieces
-(along with the piece making the capture) in your store.
+(along with the piece making the capture) in your store, and take
+another move.
 
 The game ends when all six spaces on one side of the Mancala board
 are empty.
