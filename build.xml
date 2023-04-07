@@ -1,0 +1,113 @@
+<?xml version="1.0"?>
+
+<project name="mancala" default="build">
+
+  <!-- source directories -->
+  <property name="dir.src"      location="src" />
+  <property name="dir.src.test" location="test" />
+  <property name="dir.lib"      location="lib" />
+  <property name="dir.target"   location="target" />
+
+  <!-- dist directories -->
+  <property name="dir.dist"     location="${dir.target}/dist" />
+
+  <!-- Leave these alone -->
+  <property name="dir.tmp"          location="${dir.target}/tmp" />
+  <property name="dir.classes"      location="${dir.target}/classes" />
+  <property name="dir.classes.test" location="${dir.target}/testclasses" />
+  <property name="dir.test.report"  location="${dir.target}/junit" />
+
+  <property file="project.properties" />
+
+  <property name="source.version" value="1.7" />
+
+  <path id="classpath.compile">
+    <fileset dir="${dir.lib}" includes="${project.dependencies}" />
+  </path>
+
+  <path id="classpath.test">
+    <path refid="classpath.compile" />
+    <pathelement location="${dir.classes}" />
+    <pathelement location="${dir.src}" />      <!-- for bundled resources -->
+    <pathelement location="${basedir}" />      <!-- for META-INF/*.dtd    -->
+    <pathelement location="${dir.classes.test}" />
+    <pathelement location="${dir.src.test}" /> <!-- for test resources    -->
+    <fileset dir="${dir.lib.test}" includes="${project.dependencies.test}" />
+  </path>
+
+  <target name="clean">
+    <delete dir="${dir.target}" />
+  </target>
+
+  <target name="build" depends="-depend, -javac, -jar" />
+
+  <target name="-depend">
+    <depend srcdir="${dir.src}" destdir="${dir.classes}" closure="no" />
+  </target>
+
+  <target name="-javac">
+    <mkdir dir="${dir.target}" />
+    <mkdir dir="${dir.classes}" />
+    <javac destdir="${dir.classes}" debug="yes" source="${source.version}">
+      <src path="${dir.src}" />
+      <classpath refid="classpath.compile" />
+    </javac>
+  </target>
+
+
+  <target name="-jar">
+    <mkdir dir="${dir.dist}" />
+    <property name="dir.jar.tmp" location="${dir.tmp}/jar" />
+    <mkdir dir="${dir.jar.tmp}" />
+    <unzip dest="${dir.jar.tmp}">
+      <fileset dir="${dir.lib}" includes="${project.dependencies}" />
+    </unzip>
+    <jar jarfile="${dir.dist}/mancala.jar" manifest="META-INF/manifest.mf">
+      <metainf dir="META-INF">
+        <include name="mandelbrot-def.xml" />
+        <include name="*.dtd" />
+      </metainf>
+      <fileset dir="${dir.src}">
+        <include name="**/*" />
+        <exclude name="**/*.java" />
+      </fileset>
+      <fileset dir="${dir.classes}" />
+      <fileset dir="${dir.jar.tmp}" excludes="META-INF/*,**/*.html" />
+    </jar>
+  </target>
+
+  <target name="-javadoc" description="Generate Javadoc API">
+    <mkdir dir="${dir.doc.api}" />
+    <javadoc packagenames="gtf.*"
+        sourcepath="${dir.src}"
+        destdir="${dir.doc.api}"
+        package="yes"
+        source="${source.version}"
+        breakiterator="true"
+        failonerror="true">
+      <classpath refid="classpath.compile" />
+    </javadoc>
+  </target>
+
+  <target name="test" depends="-compiletests">
+    <property name="dir.test.tmp" location="${dir.tmp}/junit" />
+    <mkdir dir="${dir.test.tmp}" />
+    <junit>
+      <classpath refid="classpath.test" />
+      <sysproperty key="mandel.test.dir.output" value="${dir.tmp}" />
+      <batchtest todir="${dir.test.tmp}">
+        <formatter type="xml" />
+        <fileset dir="${dir.classes.test}" includes="**/*Test.class" />
+      </batchtest>
+    </junit>
+    <mkdir dir="${dir.test.report}" />
+    <junitreport todir="${dir.test.tmp}">
+      <fileset dir="${dir.test.tmp}">
+        <include name="TEST-*.xml"/>
+      </fileset>
+      <report format="frames" todir="${dir.test.report}" />
+    </junitreport>
+    <delete dir="${dir.test.tmp}" />
+  </target>
+
+</project>
